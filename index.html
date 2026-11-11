@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>우리 동창 모임 초대장 & 참석 투표</title>
+
+  <!-- 카카오톡 단톡방 링크 공유 시 뜨는 썸네일 카드 (OpenGraph) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="🎓 우리 동창 정기 모임 초대장">
+  <meta property="og:description" content="모임 공지 확인 및 참석 여부(RSVP)를 투표해 주세요!">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&q=80">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tossBlue: '#3182F6',
+            tossDark: '#191F28',
+            tossGray: '#8B95A1',
+            tossBg: '#F2F4F6',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Kakao JavaScript SDK v2.7.2 (공식 카카오톡 공유용) -->
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" crossorigin="anonymous"></script>
+
+  <!-- Pretendard Font -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: #F2F4F6;
+      color: #191F28;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .custom-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    .btn-tap {
+      transition: transform 0.1s ease, background-color 0.15s ease;
+    }
+
+    .btn-tap:active {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col justify-between p-3 sm:p-5">
+
+  <!-- 모바일 중심 컨테이너 (최대 420px) -->
+  <main class="w-full max-w-[420px] mx-auto space-y-3.5 pb-4">
+
+    <!-- 1. 심플한 모임 공지 초대장 카드 -->
+    <div class="custom-card p-5 relative overflow-hidden border border-slate-100">
+
+      <!-- 상단 뱃지 & 주최자 공지 수정 버튼 (비밀번호 보호) -->
+      <div class="flex items-center justify-between mb-3">
+        <span id="dDayBadge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-tossBlue">
+          D-Day 계산 중
+        </span>
+        <button onclick="requestAdminAccess()"
+          class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center space-x-1 transition"
+          title="주최자 공지 변경">
+          <i data-lucide="lock" class="w-3 h-3 text-slate-400"></i>
+          <span>공지 변경</span>
+        </button>
+      </div>
+
+      <!-- 모임 제목 -->
+      <h1 id="eventTitle" class="text-2xl font-extrabold text-tossDark tracking-tight leading-snug mb-4">
+        2026 동창 정기 모임
+      </h1>
+
+      <!-- 모임 일시 & 장소 리스트 -->
+      <div class="space-y-3 text-sm border-t border-slate-100 pt-3.5">
+        <!-- 일시 -->
+        <div class="flex items-start space-x-3">
+          <span
+            class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 mt-0.5">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
+          </span>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">모임 일시</div>
+            <div id="eventDateText" class="font-bold text-slate-800 text-base">2026년 4월 25일 (토) 오후 6:00</div>
+          </div>
+        </div>
+
+        <!-- 장소 -->
+        <div class="flex items-start space-x-3">
+          <span
+            class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 mt-0.5">
+            <i data-lucide="map-pin" class="w-4 h-4"></i>
+          </span>
+          <div class="flex-1">
+            <div class="text-xs text-slate-400 font-medium">모임 장소</div>
+            <div id="eventLocationText" class="font-bold text-slate-800 text-base">맛있는 고기마을 강남본점</div>
+            <div id="eventAddressText" class="text-xs text-slate-500 mt-0.5">서울 강남구 테헤란로 123 (강남역 1번 출구)</div>
+
+            <!-- 길찾기 지도 버튼 -->
+            <a id="btnMapLink" href="https://map.kakao.com" target="_blank"
+              class="inline-flex items-center space-x-1 mt-2 px-3 py-1.5 rounded-lg bg-yellow-400/20 text-yellow-900 font-bold text-xs hover:bg-yellow-400/30 transition">
+              <span>🟡 카카오맵으로 위치 보기</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 모임 안내 문구 -->
+      <div class="mt-4 p-3 bg-slate-50 rounded-xl text-xs text-slate-600 leading-relaxed" id="eventNoticeText">
+        친구들아 반갑다! 식당 인원 예약을 위해 꼭 참석 여부를 투표해 줘 😊
+      </div>
+    </div>
+
+    <!-- 2. 초간편 참석 여부 투표 카드 -->
+    <div class="custom-card p-5 border border-slate-100">
+      <h2 class="text-base font-bold text-tossDark mb-3 flex items-center space-x-1.5">
+        <span>내 참석 여부 결정하기</span>
+      </h2>
+
+      <form id="rsvpForm" onsubmit="handleVote(event)" class="space-y-3.5">
+        <!-- 이름 입력 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">이름</label>
+          <input type="text" id="voterName" required placeholder="이름을 입력하세요 (예: 홍길동)"
+            class="w-full px-3.5 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-tossBlue focus:bg-white transition">
+        </div>
+
+        <!-- 참석 / 불참 큰 선택 버튼 2개 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">참석 여부</label>
+          <div class="grid grid-cols-2 gap-2">
+            <!-- 참석 버튼 -->
+            <label class="cursor-pointer">
+              <input type="radio" name="rsvpChoice" value="attend" class="peer sr-only" checked
+                onchange="toggleReasonBox()">
+              <div
+                class="py-3.5 px-3 rounded-xl border-2 text-center transition flex flex-col items-center justify-center space-y-1 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 border-slate-200 bg-white">
+                <span class="text-xl">🟢</span>
+                <span class="text-sm font-bold">참석합니다</span>
+              </div>
+            </label>
+
+            <!-- 불참 버튼 -->
+            <label class="cursor-pointer">
+              <input type="radio" name="rsvpChoice" value="absent" class="peer sr-only" onchange="toggleReasonBox()">
+              <div
+                class="py-3.5 px-3 rounded-xl border-2 text-center transition flex flex-col items-center justify-center space-y-1 peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:text-rose-700 border-slate-200 bg-white">
+                <span class="text-xl">🔴</span>
+                <span class="text-sm font-bold">불참합니다</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 불참 사유 입력란 (불참 선택 시에만 표시) -->
+        <div id="absentReasonBox" class="hidden transition-all duration-200">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">
+            불참 사유 <span class="text-rose-500 text-[11px] font-normal">(친구들에게 간단히 남겨주세요)</span>
+          </label>
+          <input type="text" id="absentReason" placeholder="예: 회사 출장, 가족 행사 등" maxlength="50"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-rose-50/50 border border-rose-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 transition">
+        </div>
+
+        <!-- 투표 완료 버튼 -->
+        <button type="submit"
+          class="w-full py-3.5 rounded-xl bg-tossBlue hover:bg-blue-600 text-white font-bold text-sm shadow-sm btn-tap transition">
+          참석 여부 제출하기
+        </button>
+      </form>
+    </div>
+
+    <!-- 3. 최종 참석 인원 집계 & 명단 카드 -->
+    <div class="custom-card p-5 border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-tossDark">최종 참석 현황</h2>
+        <button onclick="exportToCsv()"
+          class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg hover:bg-emerald-100 transition flex items-center space-x-1">
+          <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+          <span>엑셀 다운로드</span>
+        </button>
+      </div>
+
+      <!-- 참석 / 불참 카운트 요약 -->
+      <div class="grid grid-cols-2 gap-2 text-center">
+        <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
+          <div class="text-xs font-bold text-emerald-800">🟢 참석 확정</div>
+          <div class="text-2xl font-black text-emerald-700 mt-1">
+            <span id="countAttend">0</span><span class="text-sm font-semibold ml-0.5">명</span>
+          </div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-100">
+          <div class="text-xs font-bold text-rose-800">🔴 불참</div>
+          <div class="text-2xl font-black text-rose-700 mt-1">
+            <span id="countAbsent">0</span><span class="text-sm font-semibold ml-0.5">명</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 참석자 명단 리스트 -->
+      <div class="space-y-2 pt-1">
+        <div class="text-xs font-bold text-slate-500">참석자 명단 (<span id="countAttendList">0</span>명)</div>
+        <div id="attendeesList" class="flex flex-wrap gap-1.5 min-h-[30px] p-2 bg-slate-50 rounded-xl">
+          <!-- 동적으로 생성 -->
+        </div>
+      </div>
+
+      <!-- 불참자 및 사유 리스트 -->
+      <div class="space-y-2 pt-1 border-t border-slate-100">
+        <div class="text-xs font-bold text-slate-500">불참자 명단 및 사유 (<span id="countAbsentList">0</span>명)</div>
+        <div id="absenteesList" class="space-y-1.5 min-h-[30px]">
+          <!-- 동적으로 생성 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 카카오톡 단톡방 공유 버튼 (누르면 바로 카톡 실행) -->
+    <div class="custom-card p-4 border border-slate-100 flex items-center justify-between bg-yellow-400/10">
+      <div class="flex items-center space-x-2.5">
+        <span
+          class="w-8 h-8 rounded-xl bg-[#FEE500] text-[#3C1E1E] flex items-center justify-center font-black text-sm">
+          💬
+        </span>
+        <div>
+          <div class="text-xs font-bold text-slate-900">단톡방에 이 모임 알리기</div>
+          <div class="text-[11px] text-slate-500">친구들에게 카톡으로 초대장을 보냅니다</div>
+        </div>
+      </div>
+      <button onclick="shareToKakao()"
+        class="px-3 py-2 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] font-bold text-xs shadow-xs transition active:scale-95">
+        카톡 공유
+      </button>
+    </div>
+
+  </main>
+
+  <!-- 주최자 비밀번호 확인 팝업 (친구들이 실수로 공지 바꾸는 것 방지) -->
+  <div id="adminPinModal"
+    class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xs w-full p-5 space-y-3.5 shadow-xl text-center">
+      <div class="w-10 h-10 rounded-full bg-blue-50 text-tossBlue flex items-center justify-center mx-auto text-lg">
+        🔒
+      </div>
+      <div>
+        <h3 class="font-bold text-sm text-slate-900">주최자 확인</h3>
+        <p class="text-[11px] text-slate-500 mt-0.5">공지 수정을 위해 비밀번호를 입력해주세요.<br><span
+            class="text-blue-600 font-semibold">(초기 비밀번호: 1234)</span></p>
+      </div>
+      <div>
+        <input type="password" id="adminPinInput" maxlength="6" placeholder="비밀번호 입력"
+          class="w-full text-center px-3 py-2 border rounded-lg text-sm tracking-widest focus:outline-none focus:ring-2 focus:ring-tossBlue">
+      </div>
+      <div class="flex space-x-2 pt-1">
+        <button onclick="closeAdminPinModal()"
+          class="flex-1 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs">취소</button>
+        <button onclick="verifyAdminPin()"
+          class="flex-1 py-2 rounded-lg bg-tossBlue text-white font-bold text-xs">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 주최자 공지 수정 모달 (다음 모임에도 계속 재사용 가능) -->
+  <div id="editModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div>
+          <h3 class="font-bold text-base text-slate-900">모임 공지 변경 (다음 모임 준비)</h3>
+          <p class="text-[11px] text-slate-500">내용을 바꾸면 다음 모임에도 계속 재사용할 수 있습니다.</p>
+        </div>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-sm p-1">✕</button>
+      </div>
+
+      <form id="editForm" onsubmit="saveNotice(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">모임명</label>
+          <input type="text" id="editTitle" required placeholder="예: 2026 제16회 동창 여름 모임"
+            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">날짜</label>
+            <input type="date" id="editDate" required class="w-full px-2 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">시간</label>
+            <input type="time" id="editTime" required class="w-full px-2 py-2 border rounded-lg">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">모임 장소명 (식당/상호)</label>
+          <input type="text" id="editLocation" required placeholder="예: 맛있는 고기마을 강남본점"
+            class="w-full px-3 py-2 border rounded-lg">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">상세 주소 (위치/교통편)</label>
+          <input type="text" id="editAddress" placeholder="예: 서울 강남구 테헤란로 123 (강남역 1번 출구)"
+            class="w-full px-3 py-2 border rounded-lg">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">공지 안내 문구</label>
+          <textarea id="editNotice" rows="2.5" placeholder="친구들에게 전할 안내 한마디를 적어주세요."
+            class="w-full px-3 py-2 border rounded-lg"></textarea>
+        </div>
+
+        <!-- 주최자 비밀번호 변경 필드 -->
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">주최자 비밀번호 변경 (선택)</label>
+          <input type="password" id="editPin" placeholder="변경할 4자리 비밀번호 (미입력 시 기존 유지)"
+            class="w-full px-3 py-2 border rounded-lg">
+        </div>
+
+        <button type="submit"
+          class="w-full py-3 bg-tossBlue hover:bg-blue-600 text-white font-bold rounded-xl text-xs transition shadow-sm">
+          변경 사항 저장하기
+        </button>
+      </form>
+
+      <!-- 다음 모임 준비용: 이전 참석자 명단 초기화 버튼 -->
+      <div class="pt-3 border-t border-slate-100">
+        <button type="button" onclick="resetAttendeesForNextMeeting()"
+          class="w-full py-2.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-bold rounded-xl text-xs transition flex items-center justify-center space-x-1">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          <span>새 모임 시작 (이전 참석자 명단 비우기)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 간단 토스트 메시지 -->
+  <div id="toast"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 transition-opacity duration-200 pointer-events-none">
+    알림
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
