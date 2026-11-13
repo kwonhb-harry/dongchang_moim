@@ -48,19 +48,19 @@ function initKakao() {
   if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
     try {
       Kakao.init('9faeb3693f18b31a5eb23b090e9d6573');
-    } catch (e) {}
+    } catch (e) { }
   }
 }
 
 function loadData() {
   const savedNotice = localStorage.getItem(STORAGE_KEY_NOTICE);
   if (savedNotice) {
-    try { eventData = { ...eventData, ...JSON.parse(savedNotice) }; } catch (e) {}
+    try { eventData = { ...eventData, ...JSON.parse(savedNotice) }; } catch (e) { }
   }
 
   const savedRsvp = localStorage.getItem(STORAGE_KEY_RSVP);
   if (savedRsvp) {
-    try { rsvpList = JSON.parse(savedRsvp); } catch (e) {}
+    try { rsvpList = JSON.parse(savedRsvp); } catch (e) { }
   }
 
   const savedPin = localStorage.getItem(STORAGE_KEY_PIN);
@@ -98,7 +98,7 @@ function renderAll() {
   const ampm = hNum >= 12 ? '오후' : '오전';
   const displayH = hNum > 12 ? hNum - 12 : (hNum === 0 ? 12 : hNum);
 
-  document.getElementById('eventDateText').textContent = 
+  document.getElementById('eventDateText').textContent =
     `${year}년 ${parseInt(month, 10)}월 ${parseInt(day, 10)}일 (${dayName}) ${ampm} ${displayH}:${minute}`;
 
   // D-Day 계산
@@ -107,7 +107,7 @@ function renderAll() {
   const target = new Date(eventData.date);
   target.setHours(0, 0, 0, 0);
   const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
-  
+
   const badge = document.getElementById('dDayBadge');
   if (diffDays > 0) {
     badge.textContent = `D-${diffDays}일 남음`;
